@@ -422,5 +422,11 @@ namespace Tests
             Assert.AreEqual<string>(this.beautifier.Beautify("var a = {\n\"a\":1,\n\"b\":2}"), "var a = {\n    \"a\": 1,\n    \"b\": 2\n}");
             Assert.AreEqual<string>(this.beautifier.Beautify("var a = {\n'a':1,\n'b':2}"), "var a = {\n    'a': 1,\n    'b': 2\n}");
         }
+
+        [TestMethod]
+        public void TestNewLineBug()
+        {
+            Assert.AreEqual<string>(this.beautifier.Beautify("function foo()\n{\n\n}\n\n\n\nfunction bar()\n{\n\n}\n"), "function foo() {\n\n}\n\n\n\nfunction bar() {\n\n}");
+        }
     }
 }

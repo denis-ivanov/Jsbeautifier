@@ -873,7 +873,7 @@
                         haveNewlines = 0;
                     if (!this.Opts.PreserveNewlines)
                         haveNewlines = 1;
-                    foreach (int i in Enumerable.Range(0, 2 - haveNewlines))
+                    for (int i = 0; i < (2 - haveNewlines); ++i)
                         this.AppendNewline(false);
                 }
                 if ((this.LastText == "get" || this.LastText == "set" || this.LastText == "new") || this.LastType == "TK_WORD")
