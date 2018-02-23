@@ -5,3 +5,4 @@ script  :
   - dotnet restore
   - dotnet build
   - dotnet test ./*Tests/
+  - dotnet pack
