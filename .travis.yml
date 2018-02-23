@@ -1,0 +1,7 @@
+language: csharp
+solution: Jsbeautifier.sln
+dotnet  : 2.0.3
+script  :
+  - dotnet restore
+  - dotnet build
+  - dotnet test ./*Tests/
