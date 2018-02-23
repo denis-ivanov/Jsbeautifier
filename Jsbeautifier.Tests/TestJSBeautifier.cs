@@ -1,8 +1,32 @@
-﻿using Jsbeautifier;
-using NUnit.Framework;
+﻿#region License
+// MIT License
+//
+// Copyright (c) 2018 Denis Ivanov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+#endregion
 
 namespace Tests
 {
+    using Jsbeautifier;
+    using NUnit.Framework;
+    
     [TestFixture]
     public class TestJSBeautifier
     {
@@ -22,21 +46,21 @@ namespace Tests
             beautifier.Opts.BreakChainedMethods = false;
         }
 
-        [Test]
-        public void TestUnescape()
+        [TestCase("\"\\\\s\"", ExpectedResult = "\"\\\\s\"")]
+        [TestCase("\'\\\\s\'", ExpectedResult = "\'\\\\s\'")]
+        [TestCase("'\\\\\\s'", ExpectedResult = "'\\\\\\s'")]
+        [TestCase("'\\s'", ExpectedResult = "'\\s'")]
+        [TestCase("\"•\"", ExpectedResult = "\"•\"")]
+        [TestCase("\"-\"", ExpectedResult = "\"-\"")]
+        [TestCase("\"\\x41\\x42\\x43\\x01\"", ExpectedResult = "\"\\x41\\x42\\x43\\x01\"")]
+        [TestCase("\"\\u2022\"", ExpectedResult = "\"\\u2022\"")]
+        [TestCase(@"a = /\s+/", ExpectedResult = @"a = /\s+/")]
+        [TestCase("\"\\u2022\";a = /\\s+/;\"\\x41\\x42\\x43\\x01\".match(/\\x41/);", ExpectedResult = "\"\\u2022\";\na = /\\s+/;\n\"\\x41\\x42\\x43\\x01\".match(/\\x41/);")]
+        [TestCase("\"\\x22\\x27\",\'\\x22\\x27\',\"\\x5c\",\'\\x5c\',\"\\xff and \\xzz\",\"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"", ExpectedResult = "\"\\x22\\x27\", \'\\x22\\x27\', \"\\x5c\", \'\\x5c\', \"\\xff and \\xzz\", \"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"")]
+        [TestCase("a = /\\s+/", ExpectedResult = "a = /\\s+/")]
+        public string TestUnescape(string code)
         {
-            Assert.AreEqual(beautifier.Beautify("\"\\\\s\""), "\"\\\\s\"");
-            Assert.AreEqual(beautifier.Beautify("\'\\\\s\'"), "\'\\\\s\'");
-            Assert.AreEqual(beautifier.Beautify("'\\\\\\s'"), "'\\\\\\s'");
-            Assert.AreEqual(beautifier.Beautify("'\\s'"), "'\\s'");
-            Assert.AreEqual(beautifier.Beautify("\"•\""), "\"•\"");
-            Assert.AreEqual(beautifier.Beautify("\"-\""), "\"-\"");
-            Assert.AreEqual(beautifier.Beautify("\"\\x41\\x42\\x43\\x01\""), "\"\\x41\\x42\\x43\\x01\"");
-            Assert.AreEqual(beautifier.Beautify("\"\\u2022\""), "\"\\u2022\"");
-            Assert.AreEqual(beautifier.Beautify(@"a = /\s+/"), @"a = /\s+/");
-            Assert.AreEqual(beautifier.Beautify("\"\\u2022\";a = /\\s+/;\"\\x41\\x42\\x43\\x01\".match(/\\x41/);"), "\"\\u2022\";\na = /\\s+/;\n\"\\x41\\x42\\x43\\x01\".match(/\\x41/);");
-            Assert.AreEqual(beautifier.Beautify("\"\\x22\\x27\",\'\\x22\\x27\',\"\\x5c\",\'\\x5c\',\"\\xff and \\xzz\",\"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\""), "\"\\x22\\x27\", \'\\x22\\x27\', \"\\x5c\", \'\\x5c\', \"\\xff and \\xzz\", \"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"");
-            Assert.AreEqual(beautifier.Beautify("a = /\\s+/"), "a = /\\s+/");
+            return beautifier.Beautify(code);
         }
 
         [Test]
