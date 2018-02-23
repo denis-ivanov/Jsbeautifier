@@ -446,7 +446,7 @@ namespace Jsbeautifier
             if (c == '/')
             {
                 string comment = "";
-                string commentMode = "TK_INLINE_COMMENT";
+                bool inlineComment = true;
 
                 if (this.Input[this.ParserPos] == '*') // peek /* .. */ comment
                 {
@@ -459,7 +459,7 @@ namespace Jsbeautifier
                             c = this.Input[this.ParserPos];
                             comment += c;
                             if ("\r\n".Contains(c))
-                                commentMode = "TK_BLOCK_COMMENT";
+                                inlineComment = false;
                             this.ParserPos += 1;
                             if (this.ParserPos >= this.Input.Length)
                                 break;
@@ -467,7 +467,13 @@ namespace Jsbeautifier
                     }
 
                     this.ParserPos += 2;
-                    return new Tuple<string, string>("/*" + comment + "*/", commentMode);
+                    
+                    if (inlineComment && NNewlines == 0)
+                    {
+                        return new Tuple<string, string>("/*" + comment + "*/", "TK_INLINE_COMMENT");
+                    }
+                    
+                    return new Tuple<string, string>("/*" + comment + "*/", "TK_BLOCK_COMMENT");
                 }
 
                 if (this.Input[this.ParserPos] == '/') // peek // comment
@@ -1065,19 +1071,30 @@ namespace Jsbeautifier
 
         private void HandleString(string tokenText)
         {
-            if (this.LastType == "TK_END_EXPR" && (this.Flags.PreviousMode == "(COND-EXPRESSION)" || this.Flags.PreviousMode == "(FOR-EXPRESSION)"))
-                this.Append(" ");
-
-            if (this.LastType == "TK_COMMENT" || this.LastType == "TK_STRING" || this.LastType == "TK_START_BLOCK" || this.LastType == "TK_END_BLOCK" || this.LastType == "TK_SEMICOLON")
-                this.AppendNewline();
-            else if (this.LastType == "TK_WORD")
-                this.Append(" ");
-            else if (this.Opts.PreserveNewlines && this.WantedNewline && this.Flags.Mode != "OBJECT")
+            if (LastType == "TK_END_EXPR" &&
+                (Flags.PreviousMode == "(COND-EXPRESSION)" || Flags.PreviousMode == "(FOR-EXPRESSION)"))
             {
-                this.AppendNewline();
-                this.Append(this.IndentString);
+                Append(" ");
             }
-            this.Append(tokenText);
+            else if (LastType == "TK_WORD")
+            {
+                Append(" ");
+            }
+            else if (LastType == "TK_COMMA" || LastType == "TK_START_EXPR" || LastType == "TK_EQUALS" ||
+                     LastType == "TK_OPERATOR")
+            {
+                if (Opts.PreserveNewlines && WantedNewline && Flags.Mode != "OBJECT")
+                {
+                    AppendNewline();
+                    Append(IndentString);
+                }
+            }
+            else
+            {
+                AppendNewline();
+            }
+
+            Append(tokenText);
         }
 
         private void HandleEquals(string tokenText)
