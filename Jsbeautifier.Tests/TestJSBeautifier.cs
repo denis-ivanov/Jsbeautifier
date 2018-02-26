@@ -352,9 +352,7 @@ namespace Tests
             Assert.That(beautifier.Beautify("throw {}"), Is.EqualTo("throw {}"));
             Assert.That(beautifier.Beautify("throw {\n    foo;\n}"), Is.EqualTo("throw {\n    foo;\n}"));
             Assert.That(beautifier.Beautify("if (a)\n{\nb;\n}\nelse\n{\nc;\n}"), Is.EqualTo("if (a)\n{\n    b;\n}\nelse\n{\n    c;\n}"));
-            Assert.That(beautifier.Beautify("if (foo) {"), Is.EqualTo("if (foo)\n{"));
             Assert.That(beautifier.Beautify("foo {"), Is.EqualTo("foo\n{"));
-            Assert.That(beautifier.Beautify("return {"), Is.EqualTo("return {"));
             Assert.That(beautifier.Beautify("return;\n{"), Is.EqualTo("return;\n{"));
             Assert.That(beautifier.Beautify("if (a)\n{\nb;\n}\nelse\n{\nc;\n}"), Is.EqualTo("if (a)\n{\n    b;\n}\nelse\n{\n    c;\n}"));
             Assert.That(beautifier.Beautify("var foo = {}"), Is.EqualTo("var foo = {}"));
@@ -362,6 +360,9 @@ namespace Tests
             Assert.That(beautifier.Beautify("if (foo) {"), Is.EqualTo("if (foo)\n{"));
             Assert.That(beautifier.Beautify("foo {"), Is.EqualTo("foo\n{"));
             Assert.That(beautifier.Beautify("return {"), Is.EqualTo("return {"));
+            Assert.That(beautifier.Beautify("return /* inline comment */ {"), Is.EqualTo("return /* inline comment */ {"));
+            Assert.That(beautifier.Beautify("return /* inline comment */ {"), Is.EqualTo("return /* inline comment */ {"));
+            Assert.That(beautifier.Beautify("return /* inline comment */ {"), Is.EqualTo("return /* inline comment */ {"));
             Assert.That(beautifier.Beautify("return;\n{"), Is.EqualTo("return;\n{"));
 
             beautifier.Opts.BraceStyle = BraceStyle.Collapse;

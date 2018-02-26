@@ -12,6 +12,7 @@
     <FileVersion>0.0.1</FileVersion>
     <Description>JavaScript beautifier</Description>
     <PackageProjectUrl>https://github.com/denis-ivanov/Jsbeautifier</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/denis-ivanov/Jsbeautifier/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>JavaScript; Beautifier</PackageTags>
   </PropertyGroup>
   
