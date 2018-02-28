@@ -123,7 +123,7 @@ namespace Jsbeautifier
 
         private void SetMode(string mode)
         {
-            BeautifierFlags prev = new BeautifierFlags("BLOCK");
+            var prev = new BeautifierFlags("BLOCK");
             
             if (Flags != null)
             {
@@ -169,17 +169,17 @@ namespace Jsbeautifier
             ParserPos = 0;
             while (true)
             {
-                Tuple<string, string> token = GetNextToken();
+                var token = GetNextToken();
                 // print (token_text, token_type, self.flags.mode)
-                string tokenText = token.Item1;
-                string tokenType = token.Item2;
+                var tokenText = token.Item1;
+                var tokenType = token.Item2;
 
                 if (tokenType == "TK_EOF")
                 {
                     break;
                 }
 
-                Dictionary<string, Action<string>> handlers = new Dictionary<string, Action<string>> {
+                var handlers = new Dictionary<string, Action<string>> {
                     { "TK_START_EXPR", HandleStartExpr }, 
                     { "TK_END_EXPR", HandleEndExpr },
                     { "TK_START_BLOCK", HandleStartBlock },
@@ -199,14 +199,17 @@ namespace Jsbeautifier
 
                 handlers[tokenType](tokenText);
 
-                LastLastText = LastText;
-                LastType = tokenType;
-                LastText = tokenText;
+                if (tokenType != "TK_INLINE_COMMENT")
+                {
+                    LastLastText = LastText;
+                    LastType = tokenType;
+                    LastText = tokenText;
+                }
             }
 
-            Regex regex = new Regex(@"[\n ]+$");
+            var regex = new Regex(@"[\n ]+$");
 
-            string sweetCode = PreindentString + regex.Replace(string.Concat(Output), "", 1);
+            var sweetCode = PreindentString + regex.Replace(string.Concat(Output), "", 1);
             return sweetCode;
         }
         
@@ -243,7 +246,7 @@ namespace Jsbeautifier
 
         private void AppendNewlineForced()
         {
-            bool oldArrayIndentation = Opts.KeepArrayIndentation;
+            var oldArrayIndentation = Opts.KeepArrayIndentation;
             Opts.KeepArrayIndentation = false;
             AppendNewline();
             Opts.KeepArrayIndentation = oldArrayIndentation;
@@ -282,12 +285,20 @@ namespace Jsbeautifier
                 Output.Add(PreindentString);
             }
 
-            foreach (int i in Enumerable.Range(0, Flags.IndentationLevel + Flags.ChainExtraIndentation))
+            foreach (var i in Enumerable.Range(0, Flags.IndentationLevel + Flags.ChainExtraIndentation))
             {
-                Output.Add(IndentString);
+                AppendIndentString();
             }
 
             if (Flags.VarLine && Flags.VarLineReindented)
+            {
+                AppendIndentString();
+            }
+        }
+
+        private void AppendIndentString()
+        {
+            if (LastText != "")
             {
                 Output.Add(IndentString);
             }
@@ -343,9 +354,10 @@ namespace Jsbeautifier
         private void RestoreMode()
         {
             DoBlockJustClosed = Flags.Mode == "DO_BLOCK";
+            
             if (FlagStore.Count > 0)
             {
-                string mode = Flags.Mode;
+                var mode = Flags.Mode;
                 Flags = FlagStore[FlagStore.Count - 1];
                 FlagStore.RemoveAt(FlagStore.Count - 1);
                 Flags.PreviousMode = mode;
@@ -362,13 +374,13 @@ namespace Jsbeautifier
             }
 
             WantedNewline = false;
-            char c = Input[ParserPos];
+            var c = Input[ParserPos];
             ParserPos += 1;
-            bool keepWhitespace = Opts.KeepArrayIndentation && IsArray(Flags.Mode);
+            var keepWhitespace = Opts.KeepArrayIndentation && IsArray(Flags.Mode);
 
             if (keepWhitespace)
             {
-                int whitespaceCount = 0;
+                var whitespaceCount = 0;
 
                 while (Whitespace.Contains(c))
                 {
@@ -402,7 +414,7 @@ namespace Jsbeautifier
 
                 if (JustAddedNewline)
                 {
-                    foreach (int i in Enumerable.Range(0, whitespaceCount))
+                    foreach (var i in Enumerable.Range(0, whitespaceCount))
                     {
                         Output.Add(" ");
                     }
@@ -431,7 +443,7 @@ namespace Jsbeautifier
 
                 if (Opts.PreserveNewlines && NNewlines > 1)
                 {
-                    foreach (int i in Enumerable.Range(0, NNewlines))
+                    foreach (var i in Enumerable.Range(0, NNewlines))
                     {
                         AppendNewline(i == 0);
                         JustAddedNewline = true;
@@ -441,7 +453,7 @@ namespace Jsbeautifier
                 WantedNewline = NNewlines > 0;
             }
 
-            string cc = c.ToString();
+            var cc = c.ToString();
 
             if (Wordchar.Contains(c))
             {
@@ -461,7 +473,7 @@ namespace Jsbeautifier
                 // small and surprisingly unugly hack for 1E-10 representation
                 if (ParserPos != Input.Length && "+-".Contains(Input[ParserPos]) && Regex.IsMatch(cc, "^[0-9]+[Ee]$"))
                 {
-                    char sign = Input[ParserPos];
+                    var sign = Input[ParserPos];
                     ParserPos++;
                     var t = GetNextToken();
                     cc += sign + t.Item1;
@@ -512,8 +524,8 @@ namespace Jsbeautifier
 
             if (c == '/')
             {
-                string comment = "";
-                bool inlineComment = true;
+                var comment = "";
+                var inlineComment = true;
 
                 if (Input[ParserPos] == '*') // peek /* .. */ comment
                 {
@@ -557,8 +569,11 @@ namespace Jsbeautifier
                     {
                         comment += Input[ParserPos];
                         ParserPos += 1;
+                        
                         if (ParserPos >= Input.Length)
+                        {
                             break;
+                        }
                     }
 
                     if (WantedNewline)
@@ -576,11 +591,11 @@ namespace Jsbeautifier
                 (LastType == "TK_END_EXPR" && (Flags.PreviousMode == "(FOR-EXPRESSION)" || Flags.PreviousMode == "(COND-EXPRESSION)")) ||
                 ((new[] { "TK_COMMENT", "TK_START_EXPR", "TK_START_BLOCK", "TK_END_BLOCK", "TK_OPERATOR", "TK_EQUALS", "TK_EOF", "TK_SEMICOLON", "TK_COMMA" }).Contains(LastType)))))
             {
-                char sep = c;
-                bool esc = false;
-                int esc1 = 0;
-                int esc2 = 0;
-                string resultingString = c.ToString();
+                var sep = c;
+                var esc = false;
+                var esc1 = 0;
+                var esc2 = 0;
+                var resultingString = c.ToString();
                 
                 if (ParserPos < Input.Length)
                 {
@@ -595,9 +610,13 @@ namespace Jsbeautifier
                             {
                                 esc = Input[ParserPos] == '\\';
                                 if (Input[ParserPos] == '[')
+                                {
                                     inCharClass = true;
+                                }
                                 else if (Input[ParserPos] == ']')
+                                {
                                     inCharClass = false;
+                                }
                             }
                             else
                             {
@@ -627,16 +646,25 @@ namespace Jsbeautifier
                                 {
                                     // FIXME
                                     resultingString = new string(resultingString.Take(2 + esc2).ToArray());
-                                    if ((char)esc1 == sep || (char)esc1 == '\\')
+                                    
+                                    if ((char) esc1 == sep || (char) esc1 == '\\')
+                                    {
                                         resultingString += '\\';
+                                    }
+                                    
                                     resultingString += (char)esc1;
                                 }
                                 esc1 = 0;
                             }
+
                             if (esc1 != 0)
+                            {
                                 ++esc1;
+                            }
                             else if (!esc)
+                            {
                                 esc = Input[ParserPos] == '\\';
+                            }
                             else
                             {
                                 esc = false;
@@ -655,11 +683,14 @@ namespace Jsbeautifier
                                     }
                                 }*/
                             }
+                            
                             ParserPos += 1;
                             if (ParserPos >= Input.Length)
+                            {
                                 // incomplete string when end-of-file reached
                                 // bail out with what has received so far
                                 return new Tuple<string, string>(resultingString, "TK_STRING");
+                            }
                         }
                     }
                 }
@@ -680,7 +711,7 @@ namespace Jsbeautifier
 
             if (c == '#')
             {
-                string resultString = "";
+                var resultString = "";
                 // she-bang
                 if (Output.Count == 0 && Input.Length > 1 && Input[ParserPos] == '!')
                 {
@@ -699,7 +730,7 @@ namespace Jsbeautifier
                 //  Spidermonkey-specific sharp variables for circular references
                 // https://developer.mozilla.org/En/Sharp_variables_in_JavaScript
                 // http://mxr.mozilla.org/mozilla-central/source/js/src/jsscan.cpp around line 1935
-                string sharp = "#";
+                var sharp = "#";
 
                 if (ParserPos < Input.Length && Digits.Contains(Input[ParserPos]))
                 {
@@ -708,8 +739,11 @@ namespace Jsbeautifier
                         c = Input[ParserPos];
                         sharp += c;
                         ParserPos += 1;
+
                         if (ParserPos >= Input.Length || c == '#' || c == '=')
+                        {
                             break;
+                        }
                     }
                 }
 
@@ -727,18 +761,21 @@ namespace Jsbeautifier
                     sharp += "{}";
                     ParserPos += 2;
                 }
+
                 return new Tuple<string, string>(sharp, "TK_WORD");
             }
 
             if (c == '<' && Input.Substring(ParserPos - 1, Math.Min(4, Input.Length - ParserPos + 1)) == "<!--")
             {
                 ParserPos += 3;
-                string ss = "<!--";
+                var ss = "<!--";
+
                 while (ParserPos < Input.Length && Input[ParserPos] != '\n')
                 {
                     ss += Input[ParserPos];
                     ParserPos += 1;
                 }
+
                 Flags.InHtmlComment = true;
                 return new Tuple<string, string>(ss, "TK_COMMENT");
             }
@@ -747,30 +784,43 @@ namespace Jsbeautifier
             {
                 Flags.InHtmlComment = false;
                 ParserPos += 2;
+
                 if (WantedNewline)
+                {
                     AppendNewline();
+                }
+                
                 return new Tuple<string, string>("-->", "TK_COMMENT");
             }
 
             if (c == '.')
+            {
                 return new Tuple<string, string>(".", "TK_DOT");
+            }
 
             if (Punct.Contains(c.ToString()))
             {
-                string ss = c.ToString();
+                var ss = c.ToString();
                 while (ParserPos < Input.Length && Punct.Contains(ss + Input[ParserPos]))
                 {
                     ss += Input[ParserPos];
                     ParserPos += 1;
+
                     if (ParserPos >= Input.Length)
+                    {
                         break;
+                    }
                 }
 
                 if (ss == "=")
+                {
                     return new Tuple<string, string>("=", "TK_EQUALS");
+                }
 
                 if (ss == ",")
+                {
                     return new Tuple<string, string>(",", "TK_COMMA");
+                }
 
                 return new Tuple<string, string>(ss, "TK_OPERATOR");
             }
@@ -785,7 +835,9 @@ namespace Jsbeautifier
                 if (LastType == "TK_WORD" || LastText == ")")
                 {
                     if (LineStarters.Contains(LastText))
+                    {
                         Append(" ");
+                    }
 
                     SetMode("(EXPRESSION)");
                     Append(tokenText);
@@ -801,58 +853,90 @@ namespace Jsbeautifier
                         {
                             Flags.Mode = "[INDENTED-EXPRESSION]";
                             if (!Opts.KeepArrayIndentation)
+                            {
                                 Indent();
+                            }
                         }
+
                         SetMode("[EXPRESSION]");
+
                         if (!Opts.KeepArrayIndentation)
+                        {
                             AppendNewline();
+                        }
                     }
                     else if (LastText == "[")
                     {
                         if (Flags.Mode == "[EXPRESSION]")
                         {
                             Flags.Mode = "[INDENTED-EXPRESSION]";
+
                             if (!Opts.KeepArrayIndentation)
+                            {
                                 Indent();
+                            }
                         }
                         SetMode("[EXPRESSION]");
+
                         if (!Opts.KeepArrayIndentation)
+                        {
                             AppendNewline();
+                        }
                     }
                     else
+                    {
                         SetMode("[EXPRESSION]");
+                    }
                 }
                 else
+                {
                     SetMode("[EXPRESSION]");
+                }
             }
             else
             {
                 if (LastText == "for")
+                {
                     SetMode("(FOR-EXPRESSION)");
+                }
                 else if (LastText == "if" || LastText == "while")
+                {
                     SetMode("(COND-EXPRESSION)");
+                }
                 else
+                {
                     SetMode("(EXPRESSION)");
+                }
             }
 
             if (LastText == ";" || LastType == "TK_START_BLOCK")
+            {
                 AppendNewline();
+            }
             else if (LastType == "TK_END_EXPR" || LastType == "TK_START_EXPR" || LastType == "TK_END_BLOCK" || LastText == ".")
             {
                 // do nothing on (( and )( and ][ and ]( and .(
                 if (WantedNewline)
+                {
                     AppendNewline();
+                }
             }
             else if (LastType != "TK_WORD" && LastType != "TK_OPERATOR")
+            {
                 Append(" ");
+            }
             else if (LastWord == "function" || LastWord == "typeof")
             {
                 // function() vs function (), typeof() vs typeof ()
                 if (Opts.JslintHappy)
+                {
                     Append(" ");
+                }
             }
             else if (LineStarters.Contains(LastText) || LastText == "catch")
+            {
                 Append(" ");
+            }
 
             Append(tokenText);
         }
@@ -889,18 +973,27 @@ namespace Jsbeautifier
         private void HandleStartBlock(string tokenText)
         {
             if (LastWord == "do")
+            {
                 SetMode("DO_BLOCK");
+            }
             else
+            {
                 SetMode("BLOCK");
+            }
 
             if (Opts.BraceStyle == BraceStyle.Expand)
             {
                 if (LastType != "TK_OPERATOR")
                 {
-                    if (LastType == "TK_EQUALS" || LastType == "TK_INLINE_COMMENT" || (IsSpecialWord(LastText) && LastText != "else"))
+                    if (LastType == "TK_EQUALS" || 
+                        (IsSpecialWord(LastText) && LastText != "else"))
+                    {
                         Append(" ");
+                    }
                     else
-                        AppendNewline(true);
+                    {
+                        AppendNewline();
+                    }
                 }
                 Append(tokenText);
                 Indent();
@@ -910,9 +1003,13 @@ namespace Jsbeautifier
                 if (LastType != "TK_OPERATOR" && LastType != "TK_START_EXPR")
                 {
                     if (LastType == "TK_START_BLOCK")
+                    {
                         AppendNewline();
+                    }
                     else
+                    {
                         Append(" ");
+                    }
                 }
                 else
                 {
@@ -920,9 +1017,13 @@ namespace Jsbeautifier
                     if (IsArray(Flags.PreviousMode) && LastText == ",")
                     {
                         if (LastLastText == "}")
+                        {
                             Append(" ");
+                        }
                         else
+                        {
                             AppendNewline();
+                        }
                     }
                 }
                 Indent();
@@ -936,16 +1037,22 @@ namespace Jsbeautifier
             if (Opts.BraceStyle == BraceStyle.Expand)
             {
                 if (LastText != "{")
+                {
                     AppendNewline();
+                }
             }
             else
             {
                 if (LastType == "TK_START_BLOCK")
                 {
                     if (JustAddedNewline)
+                    {
                         RemoveIndent();
+                    }
                     else
+                    {
                         TrimOutput();
+                    }
                 }
                 else
                 {
@@ -956,7 +1063,9 @@ namespace Jsbeautifier
                         Opts.KeepArrayIndentation = true;
                     }
                     else
+                    {
                         AppendNewline();
+                    }
                 }
             }
             Append(tokenText);
@@ -975,39 +1084,61 @@ namespace Jsbeautifier
             if (tokenText == "function")
             {
                 if (Flags.VarLine && LastText != "=")
+                {
                     Flags.VarLineReindented = !Opts.KeepFunctionIndentation;
+                }
 
                 if ((JustAddedNewline || LastText == ";") && LastText != "{")
                 {
                     // make sure there is a nice clean space of at least one blank line
                     // before a new function definition
-                    int haveNewlines = NNewlines;
+                    var haveNewlines = NNewlines;
                     if (!JustAddedNewline)
+                    {
                         haveNewlines = 0;
+                    }
+
                     if (!Opts.PreserveNewlines)
+                    {
                         haveNewlines = 1;
-                    for (int i = 0; i < (2 - haveNewlines); ++i)
+                    }
+
+                    for (var i = 0; i < (2 - haveNewlines); ++i)
+                    {
                         AppendNewline(false);
+                    }
                 }
+
                 if ((LastText == "get" || LastText == "set" || LastText == "new") || LastType == "TK_WORD")
+                {
                     Append(" ");
+                }
 
                 if (LastType == "TK_WORD")
                 {
                     if (LastText == "get" || LastText == "set" || LastText == "new" || LastText == "return")
+                    {
                         Append(" ");
+                    }
                     else
+                    {
                         AppendNewline();
+                    }
                 }
                 else if (LastType == "TK_OPERATOR" || LastText == "=")
+                {
                     // foo = function
                     Append(" ");
+                }
                 else if (IsExpression(Flags.Mode))
                 {
                     // (function
                 }
                 else
+                {
                     AppendNewline();
+                }
+                
                 Append("function");
                 LastWord = "function";
                 return;
@@ -1028,16 +1159,20 @@ namespace Jsbeautifier
                 return;
             }
 
-            string prefix = "NONE";
+            var prefix = "NONE";
 
             if (LastType == "TK_END_BLOCK")
             {
                 if (tokenText != "else" && tokenText != "catch" && tokenText != "finally")
+                {
                     prefix = "NEWLINE";
+                }
                 else
                 {
                     if (Opts.BraceStyle == BraceStyle.Expand || Opts.BraceStyle == BraceStyle.EndExpand)
+                    {
                         prefix = "NEWLINE";
+                    }
                     else
                     {
                         prefix = "SPACE";
@@ -1046,11 +1181,17 @@ namespace Jsbeautifier
                 }
             }
             else if (LastType == "TK_SEMICOLON" && (Flags.Mode == "BLOCK" || Flags.Mode == "DO_BLOCK"))
+            {
                 prefix = "NEWLINE";
+            }
             else if (LastType == "TK_SEMICOLON" && IsExpression(Flags.Mode))
+            {
                 prefix = "SPACE";
+            }
             else if (LastType == "TK_STRING")
+            {
                 prefix = "NEWLINE";
+            }
             else if (LastType == "TK_WORD")
             {
                 if (LastText == "else")
@@ -1062,7 +1203,9 @@ namespace Jsbeautifier
                 prefix = "SPACE";
             }
             else if (LastType == "TK_START_BLOCK")
+            {
                 prefix = "NEWLINE";
+            }
             else if (LastType == "TK_END_EXPR")
             {
                 Append(" ");
@@ -1070,20 +1213,29 @@ namespace Jsbeautifier
             }
 
             if (Flags.IfLine && LastType == "TK_END_EXPR")
+            {
                 Flags.IfLine = false;
+            }
 
             if (LineStarters.Contains(tokenText))
             {
                 if (LastText == "else")
+                {
                     prefix = "SPACE";
+                }
                 else
+                {
                     prefix = "NEWLINE";
+                }
             }
 
             if (tokenText == "else" || tokenText == "catch" || tokenText == "finally")
             {
-                if (LastType != "TK_END_BLOCK" || Opts.BraceStyle == BraceStyle.Expand || Opts.BraceStyle == BraceStyle.EndExpand)
+                if (LastType != "TK_END_BLOCK" || Opts.BraceStyle == BraceStyle.Expand ||
+                    Opts.BraceStyle == BraceStyle.EndExpand)
+                {
                     AppendNewline();
+                }
                 else
                 {
                     TrimOutput(true);
@@ -1104,7 +1256,9 @@ namespace Jsbeautifier
                         // no need to force newline on VAR -
                         // for (var x = 0...
                         if (tokenText == "if" && LastWord == "else" && LastText != "{")
+                        {
                             Append(" ");
+                        }
                         else
                         {
                             Flags.VarLine = false;
@@ -1121,9 +1275,13 @@ namespace Jsbeautifier
                 }
             }
             else if (IsArray(Flags.Mode) && LastText == "," && LastLastText == "}")
+            {
                 AppendNewline(); //}, in lists get a newline
+            }
             else if (prefix == "SPACE")
+            {
                 Append(" ");
+            }
 
             Append(tokenText);
             LastWord = tokenText;
@@ -1136,10 +1294,14 @@ namespace Jsbeautifier
             }
 
             if (tokenText == "if")
+            {
                 Flags.IfLine = true;
+            }
 
             if (tokenText == "else")
+            {
                 Flags.IfLine = false;
+            }
         }
 
         private void HandleSemicolon(string tokenText)
@@ -1148,8 +1310,10 @@ namespace Jsbeautifier
             Flags.VarLine = false;
             Flags.VarLineReindented = false;
             if (Flags.Mode == "OBJECT")
+            {
                 // OBJECT mode is weird and doesn't get reset too well.
                 Flags.Mode = "BLOCK";
+            }
         }
 
         private void HandleString(string tokenText)
@@ -1169,7 +1333,7 @@ namespace Jsbeautifier
                 if (Opts.PreserveNewlines && WantedNewline && Flags.Mode != "OBJECT")
                 {
                     AppendNewline();
-                    Append(IndentString);
+                    AppendIndentString();
                 }
             }
             else
@@ -1183,8 +1347,11 @@ namespace Jsbeautifier
         private void HandleEquals(string tokenText)
         {
             if (Flags.VarLine)
+            {
                 // just got an '=' in a var-line, different line breaking rules will apply
                 Flags.VarLineTainted = true;
+            }
+
             Append(" ");
             Append(tokenText);
             Append(" ");
@@ -1193,7 +1360,9 @@ namespace Jsbeautifier
         private void HandleComma(string tokenText)
         {
             if (LastType == "TK_COMMENT")
+            {
                 AppendNewline();
+            }
 
             if (Flags.VarLine)
             {
@@ -1221,9 +1390,13 @@ namespace Jsbeautifier
             {
                 Append(tokenText);
                 if (Flags.Mode == "OBJECT" && LastText == "}")
+                {
                     AppendNewline();
+                }
                 else
+                {
                     Append(" ");
+                }
             }
             else
             {
@@ -1243,8 +1416,8 @@ namespace Jsbeautifier
 
         private void HandleOperator(string tokenText)
         {
-            bool spaceBefore = true;
-            bool spaceAfter = true;
+            var spaceBefore = true;
+            var spaceAfter = true;
 
             if (IsSpecialWord(LastText))
             {
@@ -1293,7 +1466,9 @@ namespace Jsbeautifier
                 }
 
                 if (LastText == "TK_WORD" && LineStarters.Contains(LastText))
+                {
                     spaceBefore = true;
+                }
 
                 if (Flags.Mode == "BLOCK" && (LastText == ";" || LastText == "{"))
                 {
@@ -1307,34 +1482,44 @@ namespace Jsbeautifier
                 if (Flags.TernaryDepth == 0)
                 {
                     if (Flags.Mode == "BLOCK")
+                    {
                         Flags.Mode = "OBJECT";
+                    }
                     spaceBefore = false;
                 }
                 else
+                {
                     Flags.TernaryDepth -= 1;
+                }
             }
             else if (tokenText == "?")
+            {
                 Flags.TernaryDepth += 1;
+            }
 
             if (spaceBefore)
+            {
                 Append(" ");
+            }
 
             Append(tokenText);
 
             if (spaceAfter)
+            {
                 Append(" ");
+            }
         }
 
         private void HandleBlockComment(string tokenText)
         {
-            string[] lines = tokenText.Replace("\r", "").Split('\n');
+            var lines = tokenText.Replace("\r", "").Split('\n');
             // all lines start with an asterisk? that's a proper box comment
 
-            if (!lines.Skip(1).Where(x => x.Trim() == "" || x.TrimStart()[0] != '*').Any(l => !string.IsNullOrEmpty(l)))
+            if (lines.Skip(1).Where(x => x.Trim() == "" || x.TrimStart()[0] != '*').All(string.IsNullOrEmpty))
             {
                 AppendNewline();
                 Append(lines[0]);
-                foreach (string line in lines.Skip(1))
+                foreach (var line in lines.Skip(1))
                 {
                     AppendNewline();
                     Append(" " + line.Trim());
@@ -1353,7 +1538,7 @@ namespace Jsbeautifier
                     // single line /* ... */ comment stays on the same line
                     Append(" ");
                 }
-                foreach (string line in lines)
+                foreach (var line in lines)
                 {
                     Append(line);
                     Append("\n");
@@ -1366,23 +1551,26 @@ namespace Jsbeautifier
         {
             Append(" ");
             Append(tokenText);
-            if (IsExpression(Flags.Mode) || (LastType == "TK_WORD" && LastWord == "return"))
-                Append(" ");
-            else
-                AppendNewlineForced();
+            Append(" ");
         }
 
         private void HandleComment(string tokenText)
         {
             if (LastText == "," && !WantedNewline)
+            {
                 TrimOutput(true);
+            }
 
             if (LastType != "TK_COMMENT")
             {
                 if (WantedNewline)
+                {
                     AppendNewline();
+                }
                 else
+                {
                     Append(" ");
+                }
             }
 
             Append(tokenText);
@@ -1392,7 +1580,9 @@ namespace Jsbeautifier
         private void HandleDot(string tokenText)
         {
             if (IsSpecialWord(LastText))
+            {
                 Append(" ");
+            }
             else if (LastText == ")")
             {
                 if (Opts.BreakChainedMethods || WantedNewline)

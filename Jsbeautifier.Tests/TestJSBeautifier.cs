@@ -441,11 +441,18 @@ namespace Tests
 
             Assert.That(beautifier.Beautify("var a = {\n\"a\":1,\n\"b\":2}"), Is.EqualTo("var a = {\n    \"a\": 1,\n    \"b\": 2\n}"));
             Assert.That(beautifier.Beautify("var a = {\n'a':1,\n'b':2}"), Is.EqualTo("var a = {\n    'a': 1,\n    'b': 2\n}"));
+            Assert.That(beautifier.Beautify("var a = /*i*/ \"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
+            Assert.That(beautifier.Beautify("var a = /*i*/\n\"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
+            Assert.That(beautifier.Beautify("{\n\n\n\"x\"\n}"), Is.EqualTo("{\n    \"x\"\n}"));
+            Assert.That(beautifier.Beautify("\n\n\"x\""), Is.EqualTo("\"x\""));
 
             beautifier.Opts.PreserveNewlines = true;
-
             Assert.That(beautifier.Beautify("var a = {\n\"a\":1,\n\"b\":2}"), Is.EqualTo("var a = {\n    \"a\": 1,\n    \"b\": 2\n}"));
             Assert.That(beautifier.Beautify("var a = {\n'a':1,\n'b':2}"), Is.EqualTo("var a = {\n    'a': 1,\n    'b': 2\n}"));
+            Assert.That(beautifier.Beautify("var a = /*i*/ \"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
+            Assert.That(beautifier.Beautify("var a = /*i*/\n\"b\";"), Is.EqualTo("var a = /*i*/\n    \"b\";"));
+            Assert.That(beautifier.Beautify("{\n\n\n\"x\"\n}"), Is.EqualTo("{\n\n\n    \"x\"\n}"));
+            Assert.That(beautifier.Beautify("\n\n\"x\""), Is.EqualTo("\"x\""));
         }
 
         [Test]
