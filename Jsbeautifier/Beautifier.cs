@@ -948,6 +948,15 @@ namespace Jsbeautifier
                 Append(" ");
             }
 
+            if (LastType == "TK_EQUALS" ||
+                LastType == "TK_OPERATOR")
+            {
+                if (Flags.Mode != "OJBECT")
+                {
+                    AppendPreservedNewLine();
+                }
+            }
+            
             Append(tokenText);
         }
 
