@@ -252,6 +252,16 @@ namespace Jsbeautifier
             Opts.KeepArrayIndentation = oldArrayIndentation;
         }
 
+        private void AppendPreservedNewLine()
+        {
+            if (Opts.PreserveNewlines && WantedNewline && !JustAddedNewline)
+            {
+                AppendNewline();
+                AppendIndentString();
+                WantedNewline = false;
+            }
+        }
+        
         private void AppendNewline(bool ignoreRepeated = true, bool resetStatementFlags = true)
         {
             Flags.EatNextSpace = false;
@@ -1217,6 +1227,17 @@ namespace Jsbeautifier
                 Flags.IfLine = false;
             }
 
+            if (LastType == "TK_COMMA" ||
+                LastType == "TK_START_EXPR" ||
+                LastType == "TK_EQUALS" ||
+                LastType == "TK_OPERATOR")
+            {
+                if (Flags.Mode != "OBJECT")
+                {
+                    AppendPreservedNewLine();
+                }
+            }
+
             if (LineStarters.Contains(tokenText))
             {
                 if (LastText == "else")
@@ -1327,13 +1348,14 @@ namespace Jsbeautifier
             {
                 Append(" ");
             }
-            else if (LastType == "TK_COMMA" || LastType == "TK_START_EXPR" || LastType == "TK_EQUALS" ||
+            else if (LastType == "TK_COMMA" || 
+                     LastType == "TK_START_EXPR" || 
+                     LastType == "TK_EQUALS" ||
                      LastType == "TK_OPERATOR")
             {
-                if (Opts.PreserveNewlines && WantedNewline && Flags.Mode != "OBJECT")
+                if (Flags.Mode != "OBJECT")
                 {
-                    AppendNewline();
-                    AppendIndentString();
+                    AppendPreservedNewLine();
                 }
             }
             else

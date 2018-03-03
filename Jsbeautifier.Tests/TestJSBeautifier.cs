@@ -345,7 +345,6 @@ namespace Tests
             Assert.That(beautifier.Beautify("if (a)\n{\nb;\n}\nelse\n{\nc;\n}"), Is.EqualTo("if (a) {\n    b;\n} else {\n    c;\n}"));
             Assert.That(beautifier.Beautify("var a = new function();"), Is.EqualTo("var a = new function();"));
             Assert.That(beautifier.Beautify("new function"), Is.EqualTo("new function"));
-            Assert.That(beautifier.Beautify("var a =\nfoo"), Is.EqualTo("var a = foo"));
 
             beautifier.Opts.BraceStyle = BraceStyle.Expand;
 
@@ -439,18 +438,24 @@ namespace Tests
 
             beautifier.Opts.PreserveNewlines = false;
 
+            Assert.That(beautifier.Beautify("var a =\nfoo"), Is.EqualTo("var a = foo"));
             Assert.That(beautifier.Beautify("var a = {\n\"a\":1,\n\"b\":2}"), Is.EqualTo("var a = {\n    \"a\": 1,\n    \"b\": 2\n}"));
             Assert.That(beautifier.Beautify("var a = {\n'a':1,\n'b':2}"), Is.EqualTo("var a = {\n    'a': 1,\n    'b': 2\n}"));
             Assert.That(beautifier.Beautify("var a = /*i*/ \"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
             Assert.That(beautifier.Beautify("var a = /*i*/\n\"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
+            Assert.That(beautifier.Beautify("var a = /*i*/\nb;"), Is.EqualTo("var a = /*i*/ b;"));
             Assert.That(beautifier.Beautify("{\n\n\n\"x\"\n}"), Is.EqualTo("{\n    \"x\"\n}"));
+            Assert.That(beautifier.Beautify("if(a && b &&\nc\n&& d && e) e = f"), Is.EqualTo("if (a && b && c && d && e) e = f"));
             Assert.That(beautifier.Beautify("\n\n\"x\""), Is.EqualTo("\"x\""));
-
+            
             beautifier.Opts.PreserveNewlines = true;
+            Assert.That(beautifier.Beautify("var a =\nfoo"), Is.EqualTo("var a =\n    foo"));
             Assert.That(beautifier.Beautify("var a = {\n\"a\":1,\n\"b\":2}"), Is.EqualTo("var a = {\n    \"a\": 1,\n    \"b\": 2\n}"));
             Assert.That(beautifier.Beautify("var a = {\n'a':1,\n'b':2}"), Is.EqualTo("var a = {\n    'a': 1,\n    'b': 2\n}"));
             Assert.That(beautifier.Beautify("var a = /*i*/ \"b\";"), Is.EqualTo("var a = /*i*/ \"b\";"));
             Assert.That(beautifier.Beautify("var a = /*i*/\n\"b\";"), Is.EqualTo("var a = /*i*/\n    \"b\";"));
+            Assert.That(beautifier.Beautify("var a = /*i*/\nb;"), Is.EqualTo("var a = /*i*/\n    b;"));
+            Assert.That(beautifier.Beautify("if(a && b &&\nc\n&& d && e) e = f"), Is.EqualTo("if (a && b &&\n    c && d && e) e = f"));
             Assert.That(beautifier.Beautify("{\n\n\n\"x\"\n}"), Is.EqualTo("{\n\n\n    \"x\"\n}"));
             Assert.That(beautifier.Beautify("\n\n\"x\""), Is.EqualTo("\"x\""));
         }
