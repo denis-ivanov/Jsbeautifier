@@ -24,24 +24,22 @@
 
 namespace Jsbeautifier
 {
-    using System;
-
     public class BeautifierOptions
     {
         public BeautifierOptions()
         {
-            this.IndentSize = 4;
-            this.IndentChar = ' ';
-            this.IndentWithTabs = false;
-            this.PreserveNewlines = true;
-            this.MaxPreserveNewlines = 10.0f;
-            this.JslintHappy = false;
-            this.BraceStyle = Jsbeautifier.BraceStyle.Collapse;
-            this.KeepArrayIndentation = false;
-            this.KeepFunctionIndentation = false;
-            this.EvalCode = false;
-            //this.UnescapeStrings = false;
-            this.BreakChainedMethods = false;
+            IndentSize = 4;
+            IndentChar = ' ';
+            IndentWithTabs = false;
+            PreserveNewlines = true;
+            MaxPreserveNewlines = 10.0f;
+            JslintHappy = false;
+            BraceStyle = BraceStyle.Collapse;
+            KeepArrayIndentation = false;
+            KeepFunctionIndentation = false;
+            EvalCode = false;
+            WrapLineLength = 0;
+            BreakChainedMethods = false;
         }
 
         public uint IndentSize { get; set; }
@@ -64,13 +62,8 @@ namespace Jsbeautifier
 
         public bool EvalCode { get; set; }
 
-        //public bool UnescapeStrings { get; set; }
+        public int WrapLineLength { get; set; }
 
         public bool BreakChainedMethods { get; set; }
-
-        public static BeautifierOptions DefaultOptions()
-        {
-            return new BeautifierOptions();
-        }
     }
 }

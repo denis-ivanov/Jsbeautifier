@@ -23,6 +23,7 @@
 #endregion
 
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace Tests
 {
@@ -467,6 +468,195 @@ namespace Tests
             Assert.That(beautifier.Beautify("this\n.something = foo.bar()\n.baz().cucumber(fat)"), Is.EqualTo("this\n    .something = foo.bar()\n    .baz()\n    .cucumber(fat)"));
             Assert.That(beautifier.Beautify("this\n.something\n.xxx = foo.moo\n.bar()"), Is.EqualTo("this\n    .something\n    .xxx = foo.moo\n    .bar()"));
 
+            beautifier.Opts.BreakChainedMethods = false;
+            beautifier.Opts.PreserveNewlines = false;
+            beautifier.Opts.WrapLineLength = 0;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ), 
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans && mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap.but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_.okay();"
+                )
+            );
+
+            beautifier.Opts.WrapLineLength = 70;
+
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans && mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap.but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_.okay();"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 40;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat &&\n" +
+                    "    \"sassy\") || (leans && mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "    .but_this_can\n" + 
+                    "if (wraps_can_occur &&\n" + 
+                    "    inside_an_if_block) that_is_.okay();"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 41;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") ||\n" +
+                    "    (leans && mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "    .but_this_can\n" +
+                    "if (wraps_can_occur &&\n" +
+                    "    inside_an_if_block) that_is_.okay();"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 45;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "{\n" +
+                    "    foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "    Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" + 
+                    "    if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();\n" +
+                    "}"
+                ),
+                Is.EqualTo(
+                    "{\n" +
+                    "    foo.bar().baz().cucumber((fat && \"sassy\") ||\n" +
+                    "        (leans && mean));\n" +
+                    "    Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "        .but_this_can\n" +
+                    "    if (wraps_can_occur &&\n" +
+                    "        inside_an_if_block) that_is_.okay();\n" +
+                    "}"
+                )
+            );
+
+            beautifier.Opts.PreserveNewlines = true;
+            beautifier.Opts.WrapLineLength = 0;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans && mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "    .but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n" +
+                    "    .okay();"
+                )
+            );
+
+            beautifier.Opts.WrapLineLength = 70;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" + 
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans && mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n" + 
+                    "    .but_this_can\n" + 
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n" +
+                    "    .okay();"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 40;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat &&\n" + 
+                    "    \"sassy\") || (leans && mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "    .but_this_can\n" +
+                    "if (wraps_can_occur &&\n" +
+                    "    inside_an_if_block) that_is_\n" +
+                    "    .okay();"
+                )
+            );
+
+            beautifier.Opts.WrapLineLength = 41;
+            
+            Assert.That(
+                beautifier.Beautify(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();"
+                ),
+                Is.EqualTo(
+                    "foo.bar().baz().cucumber((fat && \"sassy\") ||\n" +
+                    "    (leans && mean));\n" +
+                    "Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "    .but_this_can\n" +
+                    "if (wraps_can_occur &&\n" +
+                    "    inside_an_if_block) that_is_\n" +
+                    "    .okay();"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 45;
+
+            Assert.That(
+                beautifier.Beautify(
+                    "{\n" +
+                    "    foo.bar().baz().cucumber((fat && \"sassy\") || (leans\n&& mean));\n" +
+                    "    Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+                    "    if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();\n" +
+                    "}"
+                ),
+                Is.EqualTo(
+                    "{\n" +
+                    "    foo.bar().baz().cucumber((fat && \"sassy\") ||\n" + 
+                    "        (leans && mean));\n" +
+                    "    Test_very_long_variable_name_this_should_never_wrap\n" +
+                    "        .but_this_can\n" +
+                    "    if (wraps_can_occur &&\n" +
+                    "        inside_an_if_block) that_is_\n" +
+                    "        .okay();\n" +
+                    "}"
+                )
+            );
+            
+            beautifier.Opts.WrapLineLength = 0;
+            
             beautifier.Opts.PreserveNewlines = false;
 
             Assert.That(beautifier.Beautify("var a =\nfoo"), Is.EqualTo("var a = foo"));

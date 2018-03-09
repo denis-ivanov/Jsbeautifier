@@ -252,8 +252,37 @@ namespace Jsbeautifier
             Opts.KeepArrayIndentation = oldArrayIndentation;
         }
 
-        private void AppendPreservedNewLine(bool forceLinwrap = false)
+        private void AllowWrapOrPreservedNewline(string tokenText, bool forceLinwrap = false)
         {
+            if (Opts.WrapLineLength > 0 && !forceLinwrap)
+            {
+                var startLine = Output.Count - 1;
+
+                while (startLine >= 0)
+                {
+                    if (Output[startLine] == "\n")
+                    {
+                        break;
+                    }
+
+                    startLine--;
+                }
+
+                startLine++;
+
+                if (startLine < Output.Count)
+                {
+                    var slice = new string[Output.Count - startLine];
+                    Output.CopyTo(startLine, slice, 0, slice.Length);
+                    var currentLine = string.Concat(slice);
+
+                    if (currentLine.Length + tokenText.Length >= Opts.WrapLineLength)
+                    {
+                        forceLinwrap = true;
+                    }
+                }
+            }
+
             if (!JustAddedNewline && ((Opts.PreserveNewlines && WantedNewline) || forceLinwrap))
             {
                 AppendNewline(true, false);
@@ -953,7 +982,7 @@ namespace Jsbeautifier
             {
                 if (Flags.Mode != "OJBECT")
                 {
-                    AppendPreservedNewLine();
+                    AllowWrapOrPreservedNewline(tokenText);
                 }
             }
             
@@ -1243,7 +1272,7 @@ namespace Jsbeautifier
             {
                 if (Flags.Mode != "OBJECT")
                 {
-                    AppendPreservedNewLine();
+                    AllowWrapOrPreservedNewline(tokenText);
                 }
             }
 
@@ -1364,7 +1393,7 @@ namespace Jsbeautifier
             {
                 if (Flags.Mode != "OBJECT")
                 {
-                    AppendPreservedNewLine();
+                    AllowWrapOrPreservedNewline(tokenText);
                 }
             }
             else
@@ -1616,7 +1645,7 @@ namespace Jsbeautifier
             }
             else
             {
-                AppendPreservedNewLine(LastText == ")" && Opts.BreakChainedMethods);
+                AllowWrapOrPreservedNewline(tokenText, LastText == ")" && Opts.BreakChainedMethods);
             }
             
             Append(tokenText);
