@@ -244,14 +244,6 @@ namespace Jsbeautifier
                 mode == "(COND-EXPRESSION)";
         }
 
-        private void AppendNewlineForced()
-        {
-            var oldArrayIndentation = Opts.KeepArrayIndentation;
-            Opts.KeepArrayIndentation = false;
-            AppendNewline();
-            Opts.KeepArrayIndentation = oldArrayIndentation;
-        }
-
         private void AllowWrapOrPreservedNewline(string tokenText, bool forceLinwrap = false)
         {
             if (Opts.WrapLineLength > 0 && !forceLinwrap)
@@ -293,8 +285,6 @@ namespace Jsbeautifier
         
         private void AppendNewline(bool ignoreRepeated = true, bool resetStatementFlags = true)
         {
-            Flags.EatNextSpace = false;
-
             if (Opts.KeepArrayIndentation && IsArray(Flags.Mode))
             {
                 return;
@@ -355,11 +345,7 @@ namespace Jsbeautifier
                 }
 
                 // make sure only single space gets drawn
-                if (Flags.EatNextSpace)
-                {
-                    Flags.EatNextSpace = false;
-                }
-                else if (Output.Count != 0 &&
+                if (Output.Count != 0 &&
                     Output[Output.Count - 1] != " " &&
                     Output[Output.Count - 1] != "\n" &&
                     Output[Output.Count - 1] != IndentString)
@@ -370,7 +356,6 @@ namespace Jsbeautifier
             else
             {
                 JustAddedNewline = false;
-                Flags.EatNextSpace = false;
                 Output.Add(s);
             }
         }
