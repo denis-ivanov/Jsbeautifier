@@ -428,13 +428,44 @@ namespace Tests
             Assert.That(beautifier.Beautify("var a = 'foo' +\n    'bar';"), Is.EqualTo("var a = 'foo' +\n    'bar';"));
             Assert.That(beautifier.Beautify("var a = \"foo\" +\n    \"bar\";"), Is.EqualTo("var a = \"foo\" +\n    \"bar\";"));
 
-            beautifier.Opts.BreakChainedMethods = true;
-
-            Assert.That(beautifier.Beautify("foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat)"));
-            Assert.That(beautifier.Beautify("foo.bar().baz().cucumber(fat); foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat);\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
-            Assert.That(beautifier.Beautify("foo.bar().baz().cucumber(fat)\n foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat)\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
-            Assert.That(beautifier.Beautify("this.something = foo.bar().baz().cucumber(fat)"), Is.EqualTo("this.something = foo.bar()\n    .baz()\n    .cucumber(fat)"));
+            beautifier.Opts.BreakChainedMethods = false;
+            beautifier.Opts.PreserveNewlines = false;
+            
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)"), Is.EqualTo("foo.bar().baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat); foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar().baz().cucumber(fat);\nfoo.bar().baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)\n foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar().baz().cucumber(fat)\nfoo.bar().baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this\n.something = foo.bar()\n.baz().cucumber(fat)"), Is.EqualTo("this.something = foo.bar().baz().cucumber(fat)"));
             Assert.That(beautifier.Beautify("this.something.xxx = foo.moo.bar()"), Is.EqualTo("this.something.xxx = foo.moo.bar()"));
+            Assert.That(beautifier.Beautify("this\n.something\n.xxx = foo.moo\n.bar()"), Is.EqualTo("this.something.xxx = foo.moo.bar()"));
+            
+            beautifier.Opts.BreakChainedMethods = false;
+            beautifier.Opts.PreserveNewlines = true;
+            
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat); foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz().cucumber(fat);\nfoo.bar().baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)\n foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz().cucumber(fat)\nfoo.bar().baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this\n.something = foo.bar()\n.baz().cucumber(fat)"), Is.EqualTo("this\n    .something = foo.bar()\n    .baz().cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this.something.xxx = foo.moo.bar()"), Is.EqualTo("this.something.xxx = foo.moo.bar()"));
+            Assert.That(beautifier.Beautify("this\n.something\n.xxx = foo.moo\n.bar()"), Is.EqualTo("this\n    .something\n    .xxx = foo.moo\n    .bar()"));
+            
+            beautifier.Opts.BreakChainedMethods = true;
+            beautifier.Opts.PreserveNewlines = false;
+            
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat); foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat);\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)\n foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo.bar()\n    .baz()\n    .cucumber(fat)\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this\n.something = foo.bar()\n.baz().cucumber(fat)"), Is.EqualTo("this.something = foo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this.something.xxx = foo.moo.bar()"), Is.EqualTo("this.something.xxx = foo.moo.bar()"));
+            Assert.That(beautifier.Beautify("this\n.something\n.xxx = foo.moo\n.bar()"), Is.EqualTo("this.something.xxx = foo.moo.bar()"));
+
+            beautifier.Opts.BreakChainedMethods = true;
+            beautifier.Opts.PreserveNewlines = true;
+            
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat); foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz()\n    .cucumber(fat);\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("foo\n.bar()\n.baz().cucumber(fat)\n foo.bar().baz().cucumber(fat)"), Is.EqualTo("foo\n    .bar()\n    .baz()\n    .cucumber(fat)\nfoo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this\n.something = foo.bar()\n.baz().cucumber(fat)"), Is.EqualTo("this\n    .something = foo.bar()\n    .baz()\n    .cucumber(fat)"));
+            Assert.That(beautifier.Beautify("this\n.something\n.xxx = foo.moo\n.bar()"), Is.EqualTo("this\n    .something\n    .xxx = foo.moo\n    .bar()"));
 
             beautifier.Opts.PreserveNewlines = false;
 

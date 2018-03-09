@@ -252,11 +252,11 @@ namespace Jsbeautifier
             Opts.KeepArrayIndentation = oldArrayIndentation;
         }
 
-        private void AppendPreservedNewLine()
+        private void AppendPreservedNewLine(bool forceLinwrap = false)
         {
-            if (Opts.PreserveNewlines && WantedNewline && !JustAddedNewline)
+            if (!JustAddedNewline && ((Opts.PreserveNewlines && WantedNewline) || forceLinwrap))
             {
-                AppendNewline();
+                AppendNewline(true, false);
                 AppendIndentString();
                 WantedNewline = false;
             }
@@ -1614,14 +1614,11 @@ namespace Jsbeautifier
             {
                 Append(" ");
             }
-            else if (LastText == ")")
+            else
             {
-                if (Opts.BreakChainedMethods || WantedNewline)
-                {
-                    Flags.ChainExtraIndentation = 1;
-                    AppendNewline(true, false);
-                }
+                AppendPreservedNewLine(LastText == ")" && Opts.BreakChainedMethods);
             }
+            
             Append(tokenText);
         }
 
